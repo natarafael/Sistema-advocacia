@@ -1,19 +1,22 @@
+import PizZip from 'pizzip';
+import Docxtemplater from 'docxtemplater';
+import { saveAs } from 'file-saver';
 import { supabase } from './supabaseClient';
-import { FIELD_MAPPINGS } from '../utils/templateProcessor';
-import html2pdf from 'html2pdf.js';
 
 export const documentService = {
   async generateDocument(templateId, clientId, userId) {
     try {
-      // 1. Fetch template
-      const { data: template, error: templateError } = await supabase
+      // 1. Fetch template file from Supabase storage
+      const { data: template } = await supabase
         .from('templates')
         .select('*')
         .eq('id', templateId)
         .single();
 
-      if (templateError) throw templateError;
-      if (!template) throw new Error('Template not found');
+      const { data: templateFile, error: downloadError } =
+        await supabase.storage.from('templates').download(template.file_path);
+
+      if (downloadError) throw downloadError;
 
       // 2. Fetch client data
       const { data: client, error: clientError } = await supabase
@@ -23,7 +26,6 @@ export const documentService = {
         .single();
 
       if (clientError) throw clientError;
-      if (!client) throw new Error('Client not found');
 
       // 3. Fetch lawyer data
       const { data: lawyer, error: lawyerError } = await supabase
@@ -33,96 +35,57 @@ export const documentService = {
         .single();
 
       if (lawyerError) throw lawyerError;
-      if (!lawyer) throw new Error('Lawyer profile not found');
 
-      // Check required fields
-      const requiredClientFields = ['first_name', 'last_name', 'cpf', 'rg'];
-      const missingFields = requiredClientFields.filter(
-        (field) => !client[field],
-      );
+      // 4. Prepare data for template
+      const data = {
+        nomeCliente: `${client.first_name} ${client.last_name}`,
+        nacionalidade: client.nationality,
+        estadoCivil: client.marital_status,
+        numeroRG: client.rg,
+        expeditorRG: client.expeditor_rg,
+        numeroCPF: client.cpf,
+        enderecoCompleto: `${client.address}, nº ${client.address_number}, ${client.neighborhood}, ${client.city}/${client.state}`,
+        nomeAdv: lawyer.name,
+        numeroOAB: lawyer.oab_number,
+        dataContrato: new Date().toLocaleDateString('pt-BR'),
+      };
 
-      if (missingFields.length > 0) {
-        throw new Error(
-          `Missing required client information: ${missingFields.join(', ')}`,
-        );
-      }
+      // 5. Load template
+      const zip = new PizZip(await templateFile.arrayBuffer());
+      const doc = new Docxtemplater(zip, {
+        paragraphLoop: true,
+        linebreaks: true,
+      });
 
-      if (!lawyer.oab_number) {
-        throw new Error('Missing lawyer OAB number');
-      }
+      // 6. Render template
+      doc.render(data);
 
-      // 4. Replace placeholders in template
-      let documentHtml = template.html_content;
-      for (const [key, valueFunction] of Object.entries(FIELD_MAPPINGS)) {
-        try {
-          const placeholder = `{${key}}`;
-          let value;
+      // 7. Generate file name
+      const sanitizedTemplateName = template.name
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .toLowerCase();
+      const sanitizedClientName = `${client.first_name}_${client.last_name}`
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .toLowerCase();
 
-          // Determine if it's a client, lawyer, or date field and get the value
-          if (
-            key.startsWith('nome') ||
-            key.includes('CPF') ||
-            key.includes('RG')
-          ) {
-            value = valueFunction(client);
-          } else if (key.includes('Adv') || key.includes('OAB')) {
-            value = valueFunction(lawyer);
-          } else {
-            value = valueFunction();
-          }
-
-          documentHtml = documentHtml.replace(
-            new RegExp(placeholder, 'g'),
-            value,
-          );
-        } catch (error) {
-          console.error(`Error processing field ${key}:`, error);
-          throw new Error(`Error processing field ${key}`);
-        }
-      }
-
-      // Process paragraphs and spacing
-      documentHtml = documentHtml
-        // Ensure double line breaks between paragraphs
-        .replace(/\n\n/g, '</p><p>')
-        // Convert single line breaks to <br>
-        .replace(/\n/g, '<br>')
-        // Wrap in paragraphs if not already
-        .replace(/^(.+)$/m, '<p>$1</p>');
-
-      // Add header and footer if they exist
-      if (template.header_html) {
-        documentHtml = `<div class="header">${template.header_html}</div>${documentHtml}`;
-      }
-
-      if (template.footer_html) {
-        documentHtml = `${documentHtml}<div class="footer">${template.footer_html}</div>`;
-      }
-
-      // Add signature line
-      documentHtml += `
-        <div class="signature-line">
-        <p>_______________________________</p>
-        <p>${client.first_name} ${client.last_name}</p>
-        </div>
-        `;
-
-      // 5. Convert to PDF
-      const pdfBlob = await this.convertToPdf(documentHtml);
-
-      // 6. Save to Supabase Storage
-      const fileName = `documento_${Date.now()}.pdf`;
+      const fileName = `${sanitizedTemplateName}_${sanitizedClientName}_${Date.now()}.docx`;
       const filePath = `client-${clientId}/${fileName}`;
 
+      // 8. Get output
+      const docBlob = doc.getZip().generate({
+        type: 'blob',
+        mimeType:
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+
+      // 9. Save to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('client-files')
-        .upload(filePath, pdfBlob, {
-          contentType: 'application/pdf',
-        });
+        .upload(filePath, docBlob);
 
       if (uploadError) throw uploadError;
 
-      // 7. Create file record in the files table
+      // 10. Create file record
       const { data: fileRecord, error: fileError } = await supabase
         .from('files')
         .insert([
@@ -130,7 +93,8 @@ export const documentService = {
             client_id: clientId,
             file_name: fileName,
             file_path: filePath,
-            file_type: 'application/pdf',
+            file_type:
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             description: `Generated from template: ${template.name}`,
             uploaded_by: userId,
           },
@@ -140,110 +104,12 @@ export const documentService = {
 
       if (fileError) throw fileError;
 
+      // 11. Trigger download
+      saveAs(docBlob, fileName);
+
       return fileRecord;
     } catch (error) {
       console.error('Error generating document:', error);
-      throw error;
-    }
-  },
-
-  async convertToPdf(htmlContent) {
-    const opts = {
-      margin: 20,
-      filename: 'document.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        letterRendering: true,
-      },
-      jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait',
-      },
-      pagebreak: { mode: 'css' },
-    };
-
-    const styledHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              line-height: 1.6;
-              margin: 0;
-              padding: 20px;
-            }
-            
-            p {
-              margin: 1em 0;
-            }
-            
-            .header {
-              text-align: center;
-              margin-bottom: 30px;
-              page-break-after: avoid;
-            }
-            
-            .footer {
-              text-align: center;
-              margin-top: 30px;
-              page-break-before: avoid;
-            }
-            
-            .content {
-              min-height: 800px;  /* Adjust based on your needs */
-            }
-            
-            strong, b {
-              font-weight: bold;
-            }
-            
-            /* Preserve empty paragraphs for spacing */
-            p:empty {
-              height: 1em;
-            }
-            
-            /* Force page breaks where needed */
-            .page-break {
-              page-break-after: always;
-            }
-            
-            /* Proper signature spacing */
-            .signature-line {
-              margin-top: 50px;
-              text-align: center;
-            }
-            
-            /* Preserve whitespace */
-            .preserve-whitespace {
-              white-space: pre-wrap;
-            }
-          </style>
-        </head>
-        <body class="preserve-whitespace">
-          ${htmlContent}
-        </body>
-      </html>
-    `;
-
-    try {
-      // Create a temporary container
-      const container = document.createElement('div');
-      container.innerHTML = styledHtml;
-      document.body.appendChild(container);
-
-      // Convert to PDF
-      const pdf = await html2pdf().from(container).set(opts).outputPdf('blob');
-
-      // Clean up
-      document.body.removeChild(container);
-
-      return pdf;
-    } catch (error) {
-      console.error('Error converting to PDF:', error);
       throw error;
     }
   },

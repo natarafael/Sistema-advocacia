@@ -19,6 +19,7 @@ import Signup from './pages/SignUp';
 import ToastContainer from './components/ToastContainer';
 import Calendar from './pages/Calendar';
 import Settings from './pages/SettingsPage';
+import UsersPage from './pages/UsersPage';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useAuth();
@@ -46,6 +47,7 @@ const AppContent = () => {
           />
           <Route path="/settings" element={<Settings />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profiles" element={<UsersPage />} />
           <Route path="/calendar" element={<Calendar />} />
         </Routes>
       </main>

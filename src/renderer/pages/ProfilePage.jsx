@@ -5,20 +5,22 @@ import * as yup from 'yup';
 import CustomSeparator from '../components/BreadCrumbs';
 import { useAuth } from '../services/Auth';
 import ActivityLogSection from '../components/ActivityProfile';
+import { notify } from '../utils/toast';
+import { supabase } from '../services/supabaseClient';
 
 const userSchema = yup.object().shape({
-  username: yup.string().required('Username is required'),
+  username: yup.string().required('Nome de usuário é obrigatório'),
   currentPassword: yup.string().when('newPassword', {
     is: (value) => value?.length > 0,
     then: () =>
-      yup.string().required('Current password is required to change password'),
+      yup.string().required('É necessário a senha atual para alterar a senha'),
     otherwise: () => yup.string(),
   }),
   newPassword: yup
     .string()
     .test(
       'password-validation',
-      'Password must be at least 6 characters',
+      'A senha deve conter pelo menos 6 caracteres',
       function (value) {
         if (!value) return true; // Allow empty if not changing password
         return value.length >= 6;
@@ -26,7 +28,7 @@ const userSchema = yup.object().shape({
     )
     .test(
       'password-complexity',
-      'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+      'A senha deve conter pelo menos uma letra maiuscula, uma minuscula e um número',
       function (value) {
         if (!value) return true; // Allow empty if not changing password
         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value);
@@ -34,9 +36,11 @@ const userSchema = yup.object().shape({
     ),
   confirmPassword: yup
     .string()
-    .test('passwords-match', 'Passwords must match', function (value) {
+    .test('passwords-match', 'A senhas devem ser a mesma', function (value) {
       return !this.parent.newPassword || value === this.parent.newPassword;
     }),
+  name: yup.string().required('Nome completo é obrigatório'),
+  oab_number: yup.string().required('OAB é obrigatório'),
 });
 
 export default function ProfilePage() {
@@ -58,18 +62,29 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function loadProfile() {
-      if (user) {
-        try {
-          const profileData = await fetchProfile();
-          setUserData(profileData);
-          setValue('username', profileData.username);
-        } catch (error) {
-          console.error('Error fetching profile:', error);
-        }
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        // Set form values
+        setValue('username', data.username);
+        setValue('name', data.name);
+        setValue('oab_number', data.oab_number);
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        notify.error('Erro ao carregar Perfil');
       }
     }
-    loadProfile();
-  }, [user, fetchProfile, setValue]);
+
+    if (user) {
+      loadProfile();
+    }
+  }, [user, setValue]);
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
@@ -77,6 +92,8 @@ export default function ProfilePage() {
       // Handle profile update
       const updates = {
         username: data.username,
+        name: data.name,
+        oab_number: data.oab_number,
         updated_at: new Date(),
       };
 
@@ -89,18 +106,18 @@ export default function ProfilePage() {
         } catch (error) {
           setError('currentPassword', {
             type: 'manual',
-            message: 'Current password is incorrect',
+            message: 'Senha atual está incorreta',
           });
           throw error;
         }
       }
 
-      alert('Profile updated successfully!');
+      alert('Perfil atualizado com sucesso!');
       setShowPasswordForm(false);
       reset();
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Error updating profile. Please try again.');
+      alert('Erro ao atualizar o perfil. Por favor, tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -142,6 +159,56 @@ export default function ProfilePage() {
                         </p>
                       )}
                     </div>
+                  </div>
+                </div>
+
+                {/* Full Name field */}
+                <div className="sm:col-span-4">
+                  <label
+                    htmlFor="name"
+                    className="block text-xl font-medium leading-6 text-gray-900"
+                  >
+                    Nome Completo
+                  </label>
+                  <div className="mt-2">
+                    <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary sm:max-w-md">
+                      <input
+                        {...register('name')}
+                        id="name"
+                        type="text"
+                        className="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-lg sm:leading-6"
+                      />
+                    </div>
+                    {errors.name && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {errors.name.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* OAB Number field */}
+                <div className="sm:col-span-4">
+                  <label
+                    htmlFor="oab_number"
+                    className="block text-xl font-medium leading-6 text-gray-900"
+                  >
+                    Número OAB
+                  </label>
+                  <div className="mt-2">
+                    <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary sm:max-w-md">
+                      <input
+                        {...register('oab_number')}
+                        id="oab_number"
+                        type="text"
+                        className="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-lg sm:leading-6"
+                      />
+                    </div>
+                    {errors.oab_number && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {errors.oab_number.message}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

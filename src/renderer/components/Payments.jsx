@@ -453,7 +453,7 @@ const Payments = React.forwardRef((props, ref) => {
         <div>
           <button
             type="submit"
-            className="inline-flex justify-center rounded-md border border-transparent bg-primary py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary-light focus:ring-offset-2"
+            className="inline-flex justify-center rounded-md border border-transparent bg-primary py-2 px-4 text-lg font-medium text-white shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary-light focus:ring-offset-2"
           >
             Gerar Parcelas
           </button>
@@ -465,7 +465,7 @@ const Payments = React.forwardRef((props, ref) => {
           htmlFor="payment-plan"
           className="block text-sm font-medium text-gray-700"
         >
-          Select Payment Plan
+          Selecionar Plano de Pagamento
         </label>
         <select
           id="payment-plan"
@@ -483,7 +483,7 @@ const Payments = React.forwardRef((props, ref) => {
         >
           {paymentPlans.map((plan) => (
             <option key={plan.id} value={plan.id}>
-              Plan {plan.id} -{' '}
+              Plano {plan.id} -{' '}
               {new Date(plan.contract_date).toLocaleDateString()}
             </option>
           ))}
@@ -554,7 +554,7 @@ const Payments = React.forwardRef((props, ref) => {
             onClick={() =>
               handleAdditionalPayment(getValues('additionalPayment'))
             }
-            className="inline-flex justify-center rounded-md border border-transparent bg-primary py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary-light focus:ring-offset-2"
+            className="inline-flex justify-center rounded-md  border border-transparent bg-primary py-2 px-4 text-lg font-medium text-white shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary-light focus:ring-offset-2"
           >
             Adicionar
           </button>

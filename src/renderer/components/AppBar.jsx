@@ -21,7 +21,7 @@ const navigation = [
   { name: 'Página Inicial', href: '/', current: true },
   { name: 'Cadastrar Clientes', href: '/clientRegistration', current: false },
   { name: 'Calendário', href: '/calendar', current: false },
-  { name: 'Usuários', href: '/profile', current: false },
+  { name: 'Usuários', href: '/profiles', current: false },
   { name: 'Configurações', href: '/settings', current: false },
 
   // icon: <CalendarIcon className="h-6 w-6" />,

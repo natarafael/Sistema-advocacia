@@ -7,6 +7,7 @@ import {
 import { styled } from '@mui/material/styles';
 import InputBase from '@mui/material/InputBase';
 import { useNavigate } from 'react-router-dom';
+import { notify } from '../utils/toast';
 
 const CustomInput = styled(InputBase)(({ theme }) => ({
   'label + &': {
@@ -24,26 +25,27 @@ const CustomInput = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-const ClientsTable = () => {
-  const [clients, setClients] = useState([]);
+const UsersTable = () => {
+  const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    getClients();
+    getUsers();
   }, []);
 
-  async function getClients() {
+  async function getUsers() {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.from('clients').select('*');
+      const { data, error } = await supabase.from('profiles').select('*');
 
       if (error) throw error;
-      setClients(data);
-      console.log('Clients data:', data);
+      setUsers(data);
+      console.log('Users data:', data);
     } catch (error) {
-      console.error('Error fetching clients:', error.message);
+      console.error('Error fetching users:', error.message);
+      notify.error('Erro ao carregar Usuários');
     } finally {
       setIsLoading(false);
     }
@@ -52,39 +54,19 @@ const ClientsTable = () => {
   const columns = useMemo(
     () => [
       {
-        accessorKey: 'first_name',
-        header: 'Nome',
+        accessorKey: 'username',
+        header: 'Nome de usuário',
         size: 150,
       },
       {
-        accessorKey: 'last_name',
-        header: 'Sobrenome',
+        accessorKey: 'name',
+        header: 'Nome completo',
         size: 150,
       },
       {
-        accessorKey: 'address',
-        header: 'Endereço',
+        accessorKey: 'oab_number',
+        header: 'Número OAB',
         size: 200,
-      },
-      {
-        accessorKey: 'city',
-        header: 'Cidade',
-        size: 150,
-      },
-      {
-        accessorKey: 'state',
-        header: 'Estado',
-        size: 150,
-      },
-      {
-        accessorKey: 'phone',
-        header: 'Telefone',
-        size: 150,
-      },
-      {
-        accessorKey: 'cpf',
-        header: 'CPF',
-        size: 150,
       },
     ],
     [],
@@ -92,7 +74,7 @@ const ClientsTable = () => {
 
   const table = useMaterialReactTable({
     columns,
-    data: clients, //data must be memoized or stable (useState, useMemo, defined outside of this component, etc.)
+    data: users, //data must be memoized or stable (useState, useMemo, defined outside of this component, etc.)
     initialState: {
       density: 'spacious',
       showGlobalFilter: true,
@@ -117,7 +99,7 @@ const ClientsTable = () => {
     muiTableBodyRowProps: ({ row }) => ({
       onClick: (event) => {
         console.log('Row clicked:', row.original);
-        navigate(`/clientInformation/${row.original.id}`);
+        navigate(`/profile`);
       },
       style: {
         cursor: 'pointer',
@@ -128,4 +110,4 @@ const ClientsTable = () => {
   return <MaterialReactTable table={table} />;
 };
 
-export default ClientsTable;
+export default UsersTable;

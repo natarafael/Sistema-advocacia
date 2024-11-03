@@ -21,7 +21,7 @@ const Home = () => {
           <PageHeader title={'Clientes Cadastrados'} />
           <Box>
             <ButtonW onClick={handleClick} startIcon={<AddIcon />}>
-              <p className="text-lg">Cadastrar Usuário</p>
+              <p className="text-lg">Cadastrar Cliente</p>
             </ButtonW>
           </Box>
         </div>

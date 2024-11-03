@@ -4,7 +4,12 @@ import { notify } from '../utils/toast';
 import { useAuth } from '../services/Auth';
 import { documentService } from '../services/documentService';
 
-export default function DocumentGenerationModal({ isOpen, onClose, clientId }) {
+export default function DocumentGenerationModal({
+  isOpen,
+  onClose,
+  clientId,
+  onSuccess = () => {},
+}) {
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [loading, setLoading] = useState(true);
@@ -39,16 +44,18 @@ export default function DocumentGenerationModal({ isOpen, onClose, clientId }) {
 
     setLoading(true);
     try {
-      await documentService.generateDocument(
-        selectedTemplate,
-        clientId,
-        user.id,
+      await notify.promise(
+        documentService.generateDocument(selectedTemplate, clientId, user.id),
+        {
+          loading: 'Generating document...',
+          success: 'Document generated successfully',
+          error: 'Error generating document',
+        },
       );
-      notify.success('Document generated successfully');
       onClose();
+      if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error generating document:', error);
-      notify.error(error.message || 'Error generating document');
     } finally {
       setLoading(false);
     }

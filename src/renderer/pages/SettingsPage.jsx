@@ -1,3 +1,4 @@
+//the import without HTML naming will be used when the functionality of converting the template from docx is ready
 import TemplateManagement from '../components/TemplateManagement';
 
 export default function Settings() {

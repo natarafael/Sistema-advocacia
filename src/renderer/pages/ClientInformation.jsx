@@ -8,7 +8,10 @@ import { useNavigate } from 'react-router-dom';
 import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
 import ClientAppointments from '../components/ClientAppointments';
-import { DocumentPlusIcon } from '@heroicons/react/24/outline';
+import {
+  DocumentPlusIcon,
+  PencilSquareIcon,
+} from '@heroicons/react/24/outline';
 import DocumentGenerationModal from '../components/DocumentGenerationModal';
 
 export default function ClientInformation() {
@@ -83,8 +86,6 @@ export default function ClientInformation() {
   const handleEditButton = () => {
     console.log(clientData);
     navigate(`/clientRegistration/${clientData.id}`);
-
-    alert('redirect to user');
   };
 
   return (
@@ -109,8 +110,9 @@ export default function ClientInformation() {
               <button
                 variant="primary"
                 onClick={handleEditButton}
-                className="rounded-md m-2 bg-primary px-5 py-3 text-l font-bold text-white shadow-sm hover:bg-primary-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-light"
+                className="rounded-md bg-primary px-5 py-3 text-l font-bold text-white shadow-sm hover:bg-primary-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-light flex items-center"
               >
+                <PencilSquareIcon className="h-5 w-5 mr-2" />
                 Editar Informações
               </button>
             </div>
@@ -251,7 +253,6 @@ export default function ClientInformation() {
                   <dt className="text-lg font-semibold leading-6 text-gray-900">
                     Documentos
                   </dt>
-                  <DocumentIcon className="h-6 w-6 text-gray-400" />
                 </div>
                 <dd className="mt-2 text-lg text-gray-900 sm:col-span-2 sm:mt-0">
                   <div className="border rounded-lg border-gray-200 p-4">
