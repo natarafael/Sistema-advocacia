@@ -2,6 +2,8 @@
 
 Uma aplicação desktop desenvolvida em Electron + React para gerenciar um escritório de advocacia, fornecendo ferramentas para gestão de clientes, documentos, agendamentos e controle financeiro.
 
+## ESTE PROJETO ESTÁ ATUALMENTE EM ANDAMENTO
+
 ## Funcionalidades
 
 ### Gestão de Usuários
