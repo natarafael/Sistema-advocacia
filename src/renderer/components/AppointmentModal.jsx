@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { notify } from '../utils/toast';
+import { formatLocalDate } from '../utils/dateUtils';
 
 export default function AppointmentModal({ isOpen, onClose, date, onSave }) {
   const [clients, setClients] = useState([]);
@@ -8,12 +9,23 @@ export default function AppointmentModal({ isOpen, onClose, date, onSave }) {
   const [formData, setFormData] = useState({
     clientId: '',
     description: '',
-    date: date ? new Date(date).toISOString().slice(0, 16) : '',
+    time: '09:00', // Default time
   });
 
   useEffect(() => {
     fetchClients();
   }, []);
+
+  useEffect(() => {
+    // Reset form when modal opens
+    if (isOpen) {
+      setFormData({
+        clientId: '',
+        description: '',
+        time: '09:00',
+      });
+    }
+  }, [isOpen]);
 
   const fetchClients = async () => {
     try {
@@ -34,15 +46,20 @@ export default function AppointmentModal({ isOpen, onClose, date, onSave }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.clientId || !formData.date) {
-      notify.error('Por favor preencha todos os campos');
+    if (!formData.description) {
+      notify.error('Por favor adicione uma descrição');
       return;
     }
 
     try {
+      // Combine the selected date with the time
+      const selectedDate = new Date(date);
+      const [hours, minutes] = formData.time.split(':');
+      selectedDate.setHours(parseInt(hours), parseInt(minutes), 0);
+
       const appointment = {
-        client_id: formData.clientId,
-        date: new Date(formData.date).toISOString(),
+        client_id: formData.clientId || null,
+        date: selectedDate.toISOString(),
         description: formData.description,
       };
 
@@ -60,11 +77,29 @@ export default function AppointmentModal({ isOpen, onClose, date, onSave }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h2 className="text-xl font-semibold mb-4">Novo Atendimento</h2>
+        <p className="text-gray-600 mb-4">{formatLocalDate(date)}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Cliente*
+              Horário*
+            </label>
+            <input
+              type="time"
+              value={formData.time}
+              onChange={(e) =>
+                setFormData({ ...formData, time: e.target.value })
+              }
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              min="08:00"
+              max="18:00"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Cliente (opcional)
             </label>
             <select
               value={formData.clientId}
@@ -72,9 +107,8 @@ export default function AppointmentModal({ isOpen, onClose, date, onSave }) {
                 setFormData({ ...formData, clientId: e.target.value })
               }
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-              required
             >
-              <option value="">Selecione um cliente</option>
+              <option value="">Selecione um cliente (opcional)</option>
               {clients.map((client) => (
                 <option key={client.id} value={client.id}>
                   {client.first_name} {client.last_name}
@@ -85,22 +119,7 @@ export default function AppointmentModal({ isOpen, onClose, date, onSave }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Data e Hora*
-            </label>
-            <input
-              type="datetime-local"
-              value={formData.date}
-              onChange={(e) =>
-                setFormData({ ...formData, date: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Descrição
+              Descrição*
             </label>
             <textarea
               value={formData.description}
@@ -109,6 +128,7 @@ export default function AppointmentModal({ isOpen, onClose, date, onSave }) {
               }
               rows={3}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              required
             />
           </div>
 

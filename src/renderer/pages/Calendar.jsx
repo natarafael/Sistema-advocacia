@@ -36,10 +36,12 @@ export default function Calendar() {
       // Transform appointments into calendar events
       const calendarEvents = appointmentsData.map((appointment) => ({
         id: appointment.id,
-        title: `${appointment.clients.first_name} ${appointment.clients.last_name}`,
+        title: appointment.clients
+          ? `${appointment.clients.first_name} ${appointment.clients.last_name}`
+          : 'Atendimento sem cliente',
         start: appointment.date,
         description: appointment.description,
-        backgroundColor: '#10B981', // You can use your primary color here
+        backgroundColor: '#10B981',
         borderColor: '#059669',
       }));
 
@@ -100,7 +102,9 @@ export default function Calendar() {
       // Add the new event to the calendar
       const newEvent = {
         id: data.id,
-        title: `${data.clients.first_name} ${data.clients.last_name}`,
+        title: data.clients
+          ? `${data.clients.first_name} ${data.clients.last_name}`
+          : 'Atendimento sem cliente',
         start: data.date,
         description: data.description,
         backgroundColor: '#10B981',

@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { fileService } from '../services/fileService';
 import { DocumentIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { notify } from '../utils/toast';
+import ConfirmationDialog from './ConfirmationDialog';
 
 export function FileList({ clientId, onFileDelete, refreshTrigger }) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState(null);
 
   useEffect(() => {
     const loadFiles = async () => {
@@ -25,8 +28,6 @@ export function FileList({ clientId, onFileDelete, refreshTrigger }) {
   }, [clientId, refreshTrigger]);
 
   const handleDelete = async (fileId) => {
-    if (!confirm('Are you sure you want to delete this file?')) return;
-
     try {
       await notify.promise(fileService.deleteFile(fileId), {
         loading: 'Deletando arquivo...',
@@ -87,7 +88,10 @@ export function FileList({ clientId, onFileDelete, refreshTrigger }) {
                 Download
               </button>
               <button
-                onClick={() => handleDelete(file.id)}
+                onClick={() => {
+                  setFileToDelete(file.id);
+                  setShowDeleteDialog(true);
+                }}
                 className="text-red-600 hover:text-red-900"
               >
                 <TrashIcon className="h-5 w-5" />
@@ -95,6 +99,19 @@ export function FileList({ clientId, onFileDelete, refreshTrigger }) {
             </div>
           </div>
         ))}
+        <ConfirmationDialog
+          isOpen={showDeleteDialog}
+          onClose={() => {
+            setShowDeleteDialog(false);
+            setFileToDelete(null);
+          }}
+          onConfirm={() => handleDelete(fileToDelete)}
+          title="Deletar Arquivo"
+          description="Você tem certeza que deseja deletar este arquivo?"
+          confirmText="Deletar"
+          cancelText="Cancelar"
+          isDangerous={true}
+        />
         {files.length === 0 && (
           <p className="text-gray-500 text-center">
             Nenhum Documento Carregado

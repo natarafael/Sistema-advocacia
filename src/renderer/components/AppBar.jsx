@@ -18,7 +18,7 @@ import { useAuth } from '../services/Auth';
 import StatusIndicator from '../components/StatusIndicator';
 
 const navigation = [
-  { name: 'Página Inicial', href: '/', current: true },
+  { name: 'Clientes', href: '/', current: true },
   { name: 'Cadastrar Clientes', href: '/clientRegistration', current: false },
   { name: 'Calendário', href: '/calendar', current: false },
   { name: 'Usuários', href: '/profiles', current: false },

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { fileService } from '../services/fileService';
 import { DocumentIcon } from '@heroicons/react/24/outline';
+import { notify } from '../utils/toast';
 
 export function FileUpload({ clientId, onUploadComplete }) {
   const [isUploading, setIsUploading] = useState(false);
@@ -19,8 +20,11 @@ export function FileUpload({ clientId, onUploadComplete }) {
       if (onUploadComplete) onUploadComplete();
       fileInputRef.current.value = '';
     } catch (error) {
-      setError('Error uploading file. Please try again.');
+      setError('Erro ao fazer upload de arquivo. Por favor tente novamente');
       console.error('Upload error:', error);
+      notify.error(
+        'Erro ao fazer upload de arquivo. Por favor tente novamente',
+      );
     } finally {
       setIsUploading(false);
     }

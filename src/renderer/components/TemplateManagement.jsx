@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { notify } from '../utils/toast';
 import { DocumentIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { convertDocxToHtml } from '../utils/documentConverter';
-import { detectPlaceholders } from '../utils/templateProcessor';
+import ConfirmationDialog from './ConfirmationDialog';
 
 export default function TemplateManagement() {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState(null);
   const [uploadData, setUploadData] = useState({
     name: '',
     description: '',
@@ -95,19 +96,46 @@ export default function TemplateManagement() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Você tem certeza que deseja deletar essa template?')) return;
-
+  const handleDelete = async (templateId) => {
     try {
-      const { error } = await supabase.from('templates').delete().eq('id', id);
+      // First get the template to get the correct file path
+      const { data: template, error: fetchError } = await supabase
+        .from('templates')
+        .select('file_path')
+        .eq('id', templateId)
+        .single();
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
 
-      setTemplates(templates.filter((template) => template.id !== id));
+      // Delete from storage first using the actual file path
+      const { error: storageError } = await supabase.storage
+        .from('templates')
+        .remove([template.file_path]);
+
+      if (storageError) {
+        console.error('Storage delete error:', storageError);
+        throw storageError;
+      }
+
+      // Then delete from database
+      const { error: deleteError } = await supabase
+        .from('templates')
+        .delete()
+        .match({ id: templateId });
+
+      if (deleteError) {
+        console.error('Database delete error:', deleteError);
+        throw deleteError;
+      }
+
+      setTemplates((prevTemplates) =>
+        prevTemplates.filter((template) => template.id !== templateId),
+      );
+
       notify.success('Template deletada com sucesso!');
     } catch (error) {
+      console.error('Complete error:', error);
       notify.error('Erro ao deletar template');
-      console.error('Error:', error);
     }
   };
 
@@ -216,7 +244,10 @@ export default function TemplateManagement() {
                   </div>
                 </div>
                 <button
-                  onClick={() => handleDelete(template.id)}
+                  onClick={() => {
+                    setTemplateToDelete(template.id);
+                    setShowDeleteDialog(true);
+                  }}
                   className="text-red-600 hover:text-red-800"
                 >
                   <TrashIcon className="h-6 w-6" />
@@ -228,6 +259,19 @@ export default function TemplateManagement() {
               Nenhuma template adicionada
             </div>
           )}
+          <ConfirmationDialog
+            isOpen={showDeleteDialog}
+            onClose={() => {
+              setShowDeleteDialog(false);
+              setTemplateToDelete(null);
+            }}
+            onConfirm={() => handleDelete(templateToDelete)}
+            title="Deletar Template"
+            description="Você tem certeza que deseja deletar esta template?"
+            confirmText="Deletar"
+            cancelText="Cancelar"
+            isDangerous={true}
+          />
         </div>
       )}
     </div>

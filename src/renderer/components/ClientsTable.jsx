@@ -7,6 +7,7 @@ import {
 import { styled } from '@mui/material/styles';
 import InputBase from '@mui/material/InputBase';
 import { useNavigate } from 'react-router-dom';
+import { notify } from '../utils/toast';
 
 const CustomInput = styled(InputBase)(({ theme }) => ({
   'label + &': {
@@ -41,9 +42,9 @@ const ClientsTable = () => {
 
       if (error) throw error;
       setClients(data);
-      console.log('Clients data:', data);
     } catch (error) {
       console.error('Error fetching clients:', error.message);
+      notify.error('Erro ao carregar clientes');
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +117,6 @@ const ClientsTable = () => {
     enableRowActions: false,
     muiTableBodyRowProps: ({ row }) => ({
       onClick: (event) => {
-        console.log('Row clicked:', row.original);
         navigate(`/clientInformation/${row.original.id}`);
       },
       style: {

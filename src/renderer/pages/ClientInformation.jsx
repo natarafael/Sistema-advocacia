@@ -1,18 +1,21 @@
 import { PaperClipIcon, DocumentIcon } from '@heroicons/react/20/solid';
 import CustomSeparator from '../components/BreadCrumbs';
 import Payments from '../components/Payments';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { useNavigate } from 'react-router-dom';
 import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
 import ClientAppointments from '../components/ClientAppointments';
+import { formatLocalDate } from '../utils/dateUtils';
 import {
   DocumentPlusIcon,
   PencilSquareIcon,
 } from '@heroicons/react/24/outline';
 import DocumentGenerationModal from '../components/DocumentGenerationModal';
+import { TrashIcon } from '@heroicons/react/24/outline';
+import { notify } from '../utils/toast';
+import ConfirmationDialog from '../components/ConfirmationDialog';
 
 export default function ClientInformation() {
   const { id } = useParams();
@@ -21,6 +24,7 @@ export default function ClientInformation() {
   const [error, setError] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const navigate = useNavigate();
 
@@ -41,7 +45,7 @@ export default function ClientInformation() {
   };
 
   const handleUploadComplete = () => {
-    alert('Documento adicionado com sucesso');
+    notify.success('Documento adicionado com sucesso');
     setRefreshTrigger((prev) => prev + 1);
     setError(null);
   };
@@ -84,8 +88,22 @@ export default function ClientInformation() {
   }, [id]);
 
   const handleEditButton = () => {
-    console.log(clientData);
     navigate(`/clientRegistration/${clientData.id}`);
+  };
+
+  const handleDeleteClient = async () => {
+    try {
+      // Delete client
+      const { error } = await supabase.from('clients').delete().eq('id', id);
+
+      if (error) throw error;
+
+      notify.success('Cliente deletado com sucesso');
+      navigate('/');
+    } catch (error) {
+      console.error('Error deleting client:', error);
+      notify.error('Erro ao deletar cliente');
+    }
   };
 
   return (
@@ -115,6 +133,24 @@ export default function ClientInformation() {
                 <PencilSquareIcon className="h-5 w-5 mr-2" />
                 Editar Informações
               </button>
+              <button
+                onClick={() => setShowDeleteDialog(true)}
+                className="rounded-md bg-red-600 px-5 py-3 text-l font-bold text-white shadow-sm hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700 flex items-center"
+              >
+                <TrashIcon className="h-5 w-5 mr-2" />
+                Deletar Cliente
+              </button>
+
+              <ConfirmationDialog
+                isOpen={showDeleteDialog}
+                onClose={() => setShowDeleteDialog(false)}
+                onConfirm={handleDeleteClient}
+                title="Você tem certeza?"
+                description="Essa ação não pode ser desfeita. Isso irá deletar permanentemente o cliente e todos os seus registros (documentos, atendimentos e pagamentos)."
+                confirmText="Deletar"
+                cancelText="Cancelar"
+                isDangerous={true}
+              />
             </div>
           </div>
           <div className="mt-6 border-t border-gray-100">
@@ -163,7 +199,7 @@ export default function ClientInformation() {
                   Data de Nascimento
                 </dt>
                 <dd className="mt-1 text-lg leading-6 text-gray-700 sm:col-span-1 sm:mt-0">
-                  {clientData?.birth_date}
+                  {formatLocalDate(clientData?.birth_date)}
                 </dd>
               </div>
 
