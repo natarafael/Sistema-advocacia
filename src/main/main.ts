@@ -138,3 +138,13 @@ app
     });
   })
   .catch(console.log);
+
+app.on('ready', async () => {
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.argv.includes('--dev')
+  ) {
+    await installExtensions();
+    mainWindow?.webContents.openDevTools();
+  }
+});
