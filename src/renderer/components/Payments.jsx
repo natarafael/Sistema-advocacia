@@ -11,6 +11,7 @@ import {
 } from 'material-react-table';
 import { supabase } from '../services/supabaseClient';
 import { useParams } from 'react-router-dom';
+import { notify } from '../utils/toast';
 
 const paymentSchema = yup.object().shape({
   contractDate: yup.date().required('Data de Contrato é um campo obrigatório.'),
@@ -77,6 +78,7 @@ const Payments = React.forwardRef((props, ref) => {
       }
     } catch (error) {
       console.error('Error fetching payment plans:', error);
+      notify.error('Erro ao carregar planos de pagamentos');
     }
   };
 
@@ -94,6 +96,7 @@ const Payments = React.forwardRef((props, ref) => {
 
       if (parsedAmount <= 0) {
         console.error('Invalid payment amount');
+        notify.error('Valor de pagamento invalido, tente novamente');
         return;
       }
 
@@ -160,6 +163,7 @@ const Payments = React.forwardRef((props, ref) => {
       console.log('Updated remaining balance:', remainingBalance); // For debugging
     } catch (error) {
       console.error('Error processing additional payment:', error);
+      notify.error('Erro ao processar pagamento adicional');
     }
   };
 
@@ -231,6 +235,7 @@ const Payments = React.forwardRef((props, ref) => {
       reset();
     } catch (error) {
       console.error('Error creating payment plan:', error);
+      notify.error('Erro ao criar plano de pagamento');
     }
   };
 
@@ -279,6 +284,7 @@ const Payments = React.forwardRef((props, ref) => {
       calculateRemainingBalance(installments);
     } catch (error) {
       console.error('Error updating payment:', error);
+      notify.error('Erro ao fazer update do pagamento');
     }
   };
 
@@ -303,6 +309,7 @@ const Payments = React.forwardRef((props, ref) => {
       setPaymentHistory(data);
     } catch (error) {
       console.error('Error fetching payment history:', error);
+      notify.error('Erro ao carregar histórico de pagamentos');
     }
   };
 

@@ -3,9 +3,11 @@ import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../services/Auth';
 import { notify } from '../utils/toast';
 import { UserIcon } from '@heroicons/react/24/outline';
+import ConfirmationDialog from './ConfirmationDialog';
 
 export default function ClientAppointments({ clientId }) {
   const [appointments, setAppointments] = useState([]);
+  const [appointmentToDelete, setAppointmentToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const { user } = useAuth();
@@ -13,6 +15,7 @@ export default function ClientAppointments({ clientId }) {
     date: '',
     description: '',
   });
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
     fetchAppointments();
@@ -100,18 +103,16 @@ export default function ClientAppointments({ clientId }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this appointment?')) return;
-
+  const handleDelete = async (appointmentId) => {
     try {
       const { error } = await supabase
         .from('appointments')
         .delete()
-        .eq('id', id);
+        .eq('id', appointmentId);
 
       if (error) throw error;
 
-      setAppointments(appointments.filter((app) => app.id !== id));
+      setAppointments(appointments.filter((app) => app.id !== appointmentId));
       notify.success('Atendimento deletado com sucesso!');
     } catch (error) {
       notify.error('Erro ao deletar atendimento');
@@ -210,7 +211,10 @@ export default function ClientAppointments({ clientId }) {
                 </div>
                 {user.id === appointment.created_by && (
                   <button
-                    onClick={() => handleDelete(appointment.id)}
+                    onClick={() => {
+                      setAppointmentToDelete(appointment.id);
+                      setShowDeleteDialog(true);
+                    }}
                     className="text-red-600 hover:text-red-800 text-sm ml-4"
                   >
                     Deletar
@@ -219,6 +223,19 @@ export default function ClientAppointments({ clientId }) {
               </div>
             </div>
           ))}
+          <ConfirmationDialog
+            isOpen={showDeleteDialog}
+            onClose={() => {
+              setShowDeleteDialog(false);
+              setAppointmentToDelete(null);
+            }}
+            onConfirm={() => handleDelete(appointmentToDelete)}
+            title="Deletar Atendimento"
+            description="Você tem certeza que deseja deletar este atendimento?"
+            confirmText="Deletar"
+            cancelText="Cancelar"
+            isDangerous={true}
+          />
         </div>
       ) : (
         <div className="text-center text-gray-500 py-4">

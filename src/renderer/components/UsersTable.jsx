@@ -42,7 +42,6 @@ const UsersTable = () => {
 
       if (error) throw error;
       setUsers(data);
-      console.log('Users data:', data);
     } catch (error) {
       console.error('Error fetching users:', error.message);
       notify.error('Erro ao carregar Usuários');
@@ -98,7 +97,6 @@ const UsersTable = () => {
     enableRowActions: false,
     muiTableBodyRowProps: ({ row }) => ({
       onClick: (event) => {
-        console.log('Row clicked:', row.original);
         navigate(`/profile`);
       },
       style: {

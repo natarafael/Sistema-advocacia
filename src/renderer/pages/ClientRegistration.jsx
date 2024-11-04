@@ -9,6 +9,7 @@ import ky from 'ky';
 import { supabase } from '../services/supabaseClient';
 import { useParams, useNavigate } from 'react-router-dom';
 import { notify } from '../utils/toast';
+import { TrashIcon } from '@heroicons/react/24/outline';
 
 function validateCPF(value) {
   return cpfIsValid(value);
@@ -42,6 +43,10 @@ const RegistrationSchema = yup.object().shape({
   fatherName: yup.string(),
   motherName: yup.string().required('Nome da mãe é um campo obrigatório.'),
   birthDate: yup.date().required('Data de nascimento é um campo obrigatório.'),
+  neighborhood: yup.string().required('Bairro é um campo obrigatório.'),
+  expeditorRg: yup.string().required('Órgão Expedidor é um campo obrigatório.'),
+  maritalStatus: yup.string().required('Estado Civil é um campo obrigatório.'),
+  nationality: yup.string().required('Nacionalidade é um campo obrigatório.'),
 });
 
 export default function ClientForm() {
@@ -151,6 +156,10 @@ export default function ClientForm() {
         mother_name: data.motherName,
         birth_date: data.birthDate,
         created_by: 'nata',
+        nationality: data.nationality,
+        marital_status: data.maritalStatus,
+        expeditor_rg: data.expeditorRg,
+        neighborhood: data.neighborhood,
       };
 
       let result;
@@ -170,7 +179,6 @@ export default function ClientForm() {
 
       if (error) throw error;
 
-      console.log('Client operation successful:', updatedClient);
       notify.success(
         id
           ? 'Cliente atualizado com sucesso!'
@@ -179,7 +187,7 @@ export default function ClientForm() {
       if (!id) {
         e.target.reset(); // Only reset the form for new clients
       }
-      navigate(`/clientInformation/${insertedClient.id}`);
+      navigate(`/clientInformation/${id || updatedClient[0].id}`);
     } catch (error) {
       console.error('Error operating on client:', error);
       notify.error('Erro ao cadastrar cliente. Por favor, tente novamente.');
@@ -217,6 +225,7 @@ export default function ClientForm() {
           setValue('address', data.logradouro);
           setValue('city', data.localidade);
           setValue('state', data.uf);
+          setValue('neighborhood', data.bairro);
         }
       } catch (error) {
         setError('cep', {
@@ -387,6 +396,84 @@ export default function ClientForm() {
                     </div>
                   </div>
 
+                  {/* RG Expeditor  */}
+                  <div className="sm:col-span-2">
+                    <label
+                      htmlFor="expeditorRg"
+                      className="block text-lg font-medium leading-6 text-gray-900"
+                    >
+                      Órgão Expedidor*
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        {...register('expeditorRg')}
+                        id="expeditorRg"
+                        type="text"
+                        defaultValue={clientData?.expeditor_rg || ''}
+                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-light sm:text-lg sm:leading-6"
+                      />
+                      {errors.expeditorRg && (
+                        <p className="p-2 mb-4 mt-2 text-base font-medium text-red-800 bg-red-50">
+                          {errors.expeditorRg.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Nationality */}
+                  <div className="sm:col-span-2">
+                    <label
+                      htmlFor="nationality"
+                      className="block text-lg font-medium leading-6 text-gray-900"
+                    >
+                      Nacionalidade*
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        {...register('nationality')}
+                        id="nationality"
+                        type="text"
+                        defaultValue={clientData?.nationality || ''}
+                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-light sm:text-lg sm:leading-6"
+                      />
+                      {errors.nationality && (
+                        <p className="p-2 mb-4 mt-2 text-base font-medium text-red-800 bg-red-50">
+                          {errors.nationality.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Marital Status */}
+                  <div className="sm:col-span-2">
+                    <label
+                      htmlFor="maritalStatus"
+                      className="block text-lg font-medium leading-6 text-gray-900"
+                    >
+                      Estado Civil*
+                    </label>
+                    <div className="mt-2">
+                      <select
+                        {...register('maritalStatus')}
+                        id="maritalStatus"
+                        defaultValue={clientData?.marital_status || ''}
+                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-light sm:text-lg sm:leading-6"
+                      >
+                        <option value="">Selecione...</option>
+                        <option value="solteiro">Solteiro(a)</option>
+                        <option value="casado">Casado(a)</option>
+                        <option value="divorciado">Divorciado(a)</option>
+                        <option value="viuvo">Viúvo(a)</option>
+                        <option value="separado">Separado(a)</option>
+                      </select>
+                      {errors.maritalStatus && (
+                        <p className="p-2 mb-4 mt-2 text-base font-medium text-red-800 bg-red-50">
+                          {errors.maritalStatus.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Nome do pai */}
                   <div className="sm:col-span-2">
                     <label
@@ -524,6 +611,30 @@ export default function ClientForm() {
                         defaultValue={clientData?.addressNumber || ''}
                         className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-light sm:text-lg sm:leading-6"
                       />
+                    </div>
+                  </div>
+
+                  {/* Neighborhood*/}
+                  <div className="sm:col-span-2">
+                    <label
+                      htmlFor="neighborhood"
+                      className="block text-lg font-medium leading-6 text-gray-900"
+                    >
+                      Bairro*
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        {...register('neighborhood')}
+                        id="neighborhood"
+                        type="text"
+                        defaultValue={clientData?.neighborhood || ''}
+                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-light sm:text-lg sm:leading-6"
+                      />
+                      {errors.neighborhood && (
+                        <p className="p-2 mb-4 mt-2 text-base font-medium text-red-800 bg-red-50">
+                          {errors.neighborhood.message}
+                        </p>
+                      )}
                     </div>
                   </div>
 
