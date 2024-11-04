@@ -1,12 +1,11 @@
 {
-  "name": "electron-react-boilerplate",
-  "version": "4.6.0",
-  "description": "A foundation for scalable desktop apps",
+  "name": "escritorio-app",
+  "version": "1.0.0",
+  "description": "Aplicação para gerenciamento de escritório de advocacia",
   "license": "MIT",
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://github.com/electron-react-boilerplate"
+    "name": "Natã de Jesus",
+    "email": "natan_rafa13@hotmail.com"
   },
   "main": "./dist/main/main.js",
   "scripts": {

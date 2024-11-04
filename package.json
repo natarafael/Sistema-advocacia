@@ -199,14 +199,15 @@
     "webpack-merge": "^5.9.0"
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "Escritório App",
+    "appId": "com.escritorio.app",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
       "dist",
       "node_modules",
-      "package.json"
+      "package.json",
+      "config.js"
     ],
     "mac": {
       "sign": ".erb/scripts/notarize.js",
@@ -249,6 +250,13 @@
       ],
       "category": "Development"
     },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Escritório App"
+    },
     "directories": {
       "app": "release/app",
       "buildResources": "assets",
@@ -257,11 +265,7 @@
     "extraResources": [
       "./assets/**"
     ],
-    "publish": {
-      "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate"
-    }
+    "publish": null
   },
   "collective": {
     "url": "https://opencollective.com/electron-react-boilerplate-594"

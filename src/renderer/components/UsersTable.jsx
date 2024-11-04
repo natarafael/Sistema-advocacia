@@ -15,7 +15,7 @@ const CustomInput = styled(InputBase)(({ theme }) => ({
   },
   '& .MuiInputBase-input': {
     position: 'relative',
-    boxSizing: 'border-box', // Ensures padding doesn't break layout
+    boxSizing: 'border-box',
     transition: theme.transitions.create(['border-color', 'box-shadow']),
     '&:focus': {
       borderColor: 'inherit',

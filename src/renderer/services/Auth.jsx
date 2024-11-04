@@ -10,19 +10,23 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const session = supabase.auth.getSession();
-    setUser(session?.user ?? null);
-    setLoading(false);
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      },
-    );
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
+    // Cleanup subscription
     return () => {
-      listener?.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
@@ -88,17 +92,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signup = async (username, password) => {
-    const { data, error } = await supabase.auth.signUp({
-      email: `${username}@example.com`,
-      password: password,
-      options: {
-        data: {
-          username: username,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: `${username}@escritorio.com`,
+        password: password,
+        options: {
+          data: {
+            username: username,
+          },
         },
-      },
-    });
-    if (error) throw error;
-    return data;
+      });
+
+      if (error) throw error;
+
+      notify.success('Usuário criado com sucesso!');
+      return data;
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw error;
+    }
   };
 
   const updateProfile = async (updates) => {

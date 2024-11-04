@@ -20,6 +20,7 @@ import ToastContainer from './components/ToastContainer';
 import Calendar from './pages/Calendar';
 import Settings from './pages/SettingsPage';
 import UsersPage from './pages/UsersPage';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useAuth();
@@ -85,6 +86,7 @@ export default function App() {
           <ToastContainer />
         </AuthProvider>
       </ThemeProvider>
+      <ErrorBoundary></ErrorBoundary>
     </>
   );
 }

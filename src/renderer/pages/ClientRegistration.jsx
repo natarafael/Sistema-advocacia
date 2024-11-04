@@ -243,6 +243,14 @@ export default function ClientForm() {
     }
   };
 
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  const handleCleanForm = () => {
+    reset();
+  };
+
   return (
     <>
       <CustomSeparator title={id ? 'Editar Cliente' : 'Cadastrar Cliente'} />
@@ -692,10 +700,17 @@ export default function ClientForm() {
             <div className="mt-6 flex items-center justify-end gap-x-6">
               <button
                 type="button"
-                className="text-xl font-bold leading-7 text-gray-900 "
-                onClick={() => reset()}
+                className="text-xl font-bold leading-7 text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 rounded-lg px-4 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900"
+                onClick={handleCancel}
               >
                 Cancelar
+              </button>
+              <button
+                type="button"
+                className="text-xl font-bold leading-7 text-yellow-600 hover:text-white border border-yellow-600 hover:bg-yellow-800 focus:ring-4 focus:outline-none focus:ring-yellow-300 rounded-lg px-4 py-2.5 text-center dark:border-yellow-500 dark:text-yellow-500 dark:hover:text-white dark:hover:bg-yellow-600 dark:focus:ring-yellow-900"
+                onClick={handleCleanForm}
+              >
+                Limpar
               </button>
               <button
                 type="submit"
