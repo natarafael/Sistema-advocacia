@@ -69,11 +69,12 @@ const configuration: webpack.Configuration = {
           {
             loader: 'css-loader',
             options: {
-              importLoaders: 1,
+              modules: true,
               sourceMap: true,
+              importLoaders: 1,
             },
           },
-          'postcss-loader',
+          'sass-loader',
         ],
         include: /\.module\.s?(c|a)ss$/,
       },
