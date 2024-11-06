@@ -46,11 +46,11 @@ const configuration: webpack.Configuration = {
             loader: 'css-loader',
             options: {
               modules: true,
-              importLoaders: 1,
               sourceMap: true,
+              importLoaders: 1,
             },
           },
-          'sass-loader', // Add this
+          'sass-loader',
         ],
         include: /\.module\.s?(c|a)ss$/,
       },
@@ -71,6 +71,11 @@ const configuration: webpack.Configuration = {
         ],
         exclude: /\.module\.s?(c|a)ss$/,
       },
+      // {
+      //   test: /\.s?(a|c)ss$/,
+      //   use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+      //   exclude: /\.module\.s?(c|a)ss$/,
+      // },
       // Fonts
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
