@@ -2,6 +2,8 @@
 
 Uma aplicação desktop desenvolvida em Electron + React para gerenciar um escritório de advocacia, fornecendo ferramentas para gestão de clientes, documentos, agendamentos e controle financeiro.
 
+## ESTE PROJETO ESTÁ ATUALMENTE EM ANDAMENTO
+
 ## Funcionalidades
 
 ### Gestão de Usuários
@@ -117,9 +119,9 @@ Este projeto está sob a licença [MIT](LICENSE).
 
 ## Contato
 
-Seu Nome - [seu-email@exemplo.com](mailto:seu-email@exemplo.com)
+Seu Nome - [natan_rafa13@hotmail.com](mailto:natan_rafa13@hotmail.com)
 
-Link do Projeto: [https://github.com/seu-usuario/seu-repositorio](https://github.com/seu-usuario/seu-repositorio)
+Link do Projeto: [https://github.com/seu-usuario/seu-repositorio](https://github.com/natarafael/Sistema-advocacia)](https://github.com/natarafael/Sistema-advocacia)
 
 ## Agradecimentos
 

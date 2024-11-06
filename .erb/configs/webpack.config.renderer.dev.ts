@@ -77,6 +77,7 @@ const configuration: webpack.Configuration = {
         ],
         include: /\.module\.s?(c|a)ss$/,
       },
+
       // {
       //   test: /\.s?css$/,
       //   use: ['style-loader', 'css-loader', 'sass-loader'],

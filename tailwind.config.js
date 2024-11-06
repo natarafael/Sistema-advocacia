@@ -25,6 +25,8 @@ module.exports = {
       center: true,
     },
   },
-  variants: {},
+  variants: {
+    extend: {},
+  },
   plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')],
 };
