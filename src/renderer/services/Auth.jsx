@@ -5,6 +5,8 @@ import { notify } from '../utils/toast';
 
 const AuthContext = createContext(null);
 
+const EMAIL_DOMAIN = '@example.com';
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -63,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: `${username}@example.com`,
+        email: `${username}${EMAIL_DOMAIN}`,
         password: password,
       });
       if (error) throw error;
@@ -94,7 +96,7 @@ export const AuthProvider = ({ children }) => {
   const signup = async (username, password) => {
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: `${username}@escritorio.com`,
+        email: `${username}${EMAIL_DOMAIN}`,
         password: password,
         options: {
           data: {
